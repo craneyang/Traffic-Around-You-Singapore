@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>SkyTech Nearby Map</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+	<script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
+    <script>
+    var bbox = turf.bbox(features);
+    </script>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="js/jquery.ajax-cross-origin.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js"></script>
+     <script src='leaflet-knn.js'></script>
+     <script src='points.js'></script>
+	 
+	<script>
+	
+		/*function createCORSRequest(method, url) {
+		  var xhr = new XMLHttpRequest();
+		  if ("withCredentials" in xhr) {
+			// XHR for Chrome/Firefox/Opera/Safari.
+			xhr.open(method, url, true);
+		  } else if (typeof XDomainRequest != "undefined") {
+			// XDomainRequest for IE.
+			xhr = new XDomainRequest();
+			xhr.open(method, url);
+		  } else {
+			// CORS not supported.
+			xhr = null;
+		  }
+		  return xhr;
+		}*/
+
+var center = L.bounds([1.56073, 104.11475], [1.16, 103.502]).getCenter();
+        var map = L.map('map').setView([center.x, center.y], 12);
+        var basemap = L.tileLayer('https://maps-{s}.onemap.sg/v3/Grey/{z}/{x}/{y}.png', {
+          detectRetina: true,
+          maxZoom: 18,
+          minZoom: 11,
+          //Do not remove this attribution
+          attribution: '<img src="https://docs.onemap.sg/maps/images/oneMap64-01.png" style="height:20px;width:20px;"/> New OneMap | Map data © contributors, <a href="http://SLA.gov.sg">Singapore Land Authority</a>'
+        });
+		
+		map.setMaxBounds([[1.56073, 104.1147], [1.16, 103.502]]);
+		
+        basemap.addTo(map);	
+        var Icon = L.icon({
+			iconUrl: 'https://png.icons8.com/doodle/20/000000/bus.png',
+		})		
+		
+	var cpaData = 'cpa';
+	var bsData = 'bs';
+	var brData = 'br';
+	var taData = 'ta';
+	var startFrom = 0;
+	// var leafletKnn = leafletKnn();
+	
+	function grabData(dataType, pos, startFrom) {
+		//var count = startFrom;
+		// Get External API
+		console.log("Inside grabData's pos: " + [pos.lat, pos.lng]);
+		var proxy = 'https://skytech-cors.herokuapp.com/';
+		var url = "http://datamall2.mytransport.sg/ltaodataservice";
+		switch (dataType) {
+			case 'cpa':
+				var dataURL = proxy + url + "/CarParkAvailabilityv2?$skip=" + startFrom;
+				break;
+			case 'bs':
+				var dataURL = proxy + url + "/BusStops?$skip=" + startFrom;
+				break;
+			case 'br':
+				var dataURL = proxy + url + "/BusRoutes?$skip=" + startFrom;
+				break;
+			case 'ta':
+				var dataURL = proxy + url + "/Taxi-Availability?$skip=" + startFrom;
+				break;
+			default:
+				var dataURL = "No Data";
+		}
+					
+        $.ajax({
+		url: dataURL,
+		crossorigin: true,
+		/*beforeSend: function(request) {
+		  request.setRequestHeader("Access-Control-Allow-Origin","*");
+		},*/
+		headers: {
+			'AccountKey':'pCIBG2tZdDaAHAoXyUL6+Q==',
+			'Access-Control-Allow-Origin':'*',
+			'Accept':'application/json',
+			'Content-Type':'application/json'
+		},
+		method: 'GET',
+		dataType: 'json',
+		data: dataType,
+		success: function(data){
+			console.log(dataType + ' Success: '+ JSON.stringify(data));
+			//console.log("Inside success's pos: " + [pos.lat, pos.lng]);
+			$.when(data).done(function(data) {
+			//console.log("Data: " + data);
+			//console.log("Inside done's pos: " + [pos.lat, pos.lng]);
+			//var res = leafletKnn(L.GeoJSON(data)).nearest([pos.lat, pos.lng], 2);
+			//console.log('After Done: '+ JSON.stringify(data.value));
+			var returns = JSON.stringify(data.value.length);
+			console.log('Item Counts: '+ returns);			
+				for (i = 0; i < data.value.length; i++) {
+var geojsonObj = {
+  "type": "FeatureCollection",
+  "features": [ {
+  "type":"Feature", 
+  "properties": {
+	"data": data.value,	
+  }
+  } ]
+};
+console.log("geojsonObj: " + JSON.stringify(geojsonObj));					
+				//console.log("Latitude: " + data.value[i].Latitude + ' , ' + "Longitude: " + data.value[i].Longitude);
+				var marker = L.marker([data.value[i].Latitude, data.value[i].Longitude],{icon: Icon}).addTo(map).bindPopup("<b>BusStopCode: </b>" + data.value[i].BusStopCode + "<br>" + "<b>RoadName: </b>" + data.value[i].RoadName  + "<br>" + "<b>Description: </b>" + data.value[i].Description);
+				}
+			if (returns == 500){
+				startFrom += 500;
+				grabData(dataType, pos, startFrom);
+			}
+			})
+		},
+		error: function(err){
+		  console.log(dataType + ' Error: '+ JSON.stringify(err));
+		}
+	})
+	};
+	
+	
+	
+		
+        // Specify that this code should run once the cpaData request is complete
+		
+		//grabData(cpaData);
+		//console.log("targetPoint: " + targetPoint);
+		navigator.geolocation.getCurrentPosition(function(pos) {
+		//console.log(pos);
+		console.log("Pos: " + [pos.coords.latitude, pos.coords.longitude]);
+		var navPos = {
+		lat: pos.coords.latitude,
+		lng: pos.coords.longitude
+		};
+		grabData(bsData, navPos, startFrom);
+		console.log("Navigator's grabData(bsData, pos): " + [navPos.lat, navPos.lng]);
+		});
+		//grabData(taData);
+		//grabData(brData);
+	
+		function userDefinedLocation(e) {
+		 console.log(e.latlng);
+		var navPos = {
+		lat: e.latlng.lat,
+		lng: e.latlng.lng
+		};
+		 grabData(bsData, navPos, startFrom);
+		 console.log("userDefinedLocation's grabData: " + JSON.stringify(navPos));
+		}
+	
+		//var targetPoint = turf.point([28.965797, 41.010086], {"marker-color": "#0F0"});
+
+		//var targetPoint = turf.point([28.965797, 41.010086], {"marker-color": "#0F0"});
+        //var points = turf.featureCollection([
+             //turf.point([28.973865, 41.011122]),
+             //turf.point([28.948459, 41.024204]),
+            // turf.point([28.938674, 41.013324])
+         //]);
+         //var nearest = turf.nearestPoint(targetPoint, points);
+		
+		map.on("click", userDefinedLocation);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,793 @@
+<!DOCTYPE HTML>
+<!--
+	Easier by SkyTech
+	nus-skytech.github.io | @kyroskoh
+	Free for personal and commercial use under the CCA 3.0 license
+-->
+<html>
+	<head>
+		<title>SkyTech: Easier</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css" />
+    <style>
+        #map {
+			height: 800px;
+            width: 100%;
+        }
+		select#dropdown {
+		   -webkit-appearance: button;
+		   -webkit-border-radius: 2px;
+		   -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+		   -webkit-padding-end: 20px;
+		   -webkit-padding-start: 2px;
+		   -webkit-user-select: none;
+		   background-image: url(http://i62.tinypic.com/15xvbd5.png), -webkit-linear-gradient(#FAFAFA, #F4F4F4 40%, #E5E5E5);
+		   background-position: 97% center;
+		   background-repeat: no-repeat;
+		   border: 1px solid #AAA;
+		   color: #555;
+		   font-size: inherit;
+		   margin: 20px;
+		   overflow: hidden;
+		   padding: 5px 10px;
+		   text-overflow: ellipsis;
+		   white-space: nowrap;
+		   width: 480px;
+		   cursor: pointer;
+		}
+
+		select#dropdown:hover {
+			background-color: 	#CBB8B8;
+			cursor: pointer;
+		}
+    </style>	
+	</head>
+	<body class="index is-preload">
+		<div id="page-wrapper">
+
+			<!-- Header -->
+				<header id="header" class="alt">
+					<h1 id="logo"><a href="index.html">SkyTech <span>: Easier</span></a></h1>
+					
+				</header>
+
+			<!-- Banner -->
+				<section id="banner">
+
+					<div class="inner">
+
+						<header>
+							<h2>SkyTech</h2>
+						</header>
+						<p>This is <strong>Assignment 3</strong>: "Easier", 
+						<br />
+						Find Nearby App
+						<br />
+						by <a href="mailto:nus.skytech@gmail.com">SkyTech</a>.</p>
+						<footer>
+							<ul class="buttons stacked">
+								<li><a href="#mapsection" class="button fit scrolly">Tell Me More</a></li>
+							</ul>
+						</footer>
+
+					</div>
+
+				</section>
+
+			<!-- Map -->
+				<article id="mapsection">
+
+					<header class="special container">
+						<span class="icon fa-bar-chart-o"></span>
+						<h2>Find<strong> Nearby</strong>: 
+						<select id="dropdown">
+							<option value="1" selected>What are you looking for?</option>
+							<option value="2">Bus Stops</option>
+							<!-- <option value="3">Bus Routes</option> -->
+							<option value="4">Available Taxies</option>
+							<option value="5">Car Park Availability</option>
+
+						</select>
+						<h3>After your selection, please wait for 10-15 seconds then click anywhere within the map (below)!</h3>
+						<br />
+						</h2>
+					</header>
+
+					<!-- One -->
+						<section class="wrapper style4 container">
+
+							<!-- Content -->
+								<div class="content" id="map">
+									<section>
+
+									</section>
+								</div>
+
+						</section>
+
+			<!-- Footer -->
+				<footer id="footer">
+
+					<ul class="icons">
+						<li><a href="#" class="icon circle fa-twitter"><span class="label">Twitter</span></a></li>
+						<li><a href="#" class="icon circle fa-facebook"><span class="label">Facebook</span></a></li>
+						<li><a href="#" class="icon circle fa-google-plus"><span class="label">Google+</span></a></li>
+						<li><a href="#" class="icon circle fa-github"><span class="label">Github</span></a></li>
+						<li><a href="#" class="icon circle fa-dribbble"><span class="label">Dribbble</span></a></li>
+					</ul>
+
+					<ul class="copyright">
+						<li>&copy; SkyTech</li><li>Assignment 3: <a href="mailto:nus.skytech@gmail.com">Easier</a></li>
+					</ul>
+
+				</footer>
+
+		</div>
+
+		<!-- Scripts -->
+    		<script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js"></script>
+    		<script src="assets/js/leaflet-knn.min.js"></script>
+    		<script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/5.1.5/turf.min.js"></script>
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.dropotron.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+			
+	<script>
+
+		<!-- 图标信息 -->
+		var Icon = L.icon({
+			iconUrl: 'https://png.icons8.com/doodle/90/000000/bus.png',
+			iconSize:     [50, 50],
+			opacity:0.5,
+			});
+		var Icon2= L.icon({
+		   iconUrl: 'https://png.icons8.com/ios-glyphs/90/2ecc71/popular-topic.png',
+		   iconSize:     [30, 30],
+		    });
+		var Icon3 = L.icon({
+		   iconUrl: 'https://png.icons8.com/plasticine/50/000000/place-marker.png',
+		   iconSize:     [30, 30],
+		    });
+		var Icon4 = L.icon({
+		   iconUrl: 'https://png.icons8.com/doodle/90/000000/taxi.png',
+		   iconSize:     [30, 30],
+		    });
+		var Icon5 = L.icon({
+		   iconUrl: 'https://png.icons8.com/doodle/90/000000/parking.png',
+		   iconSize:     [30, 30],
+		    });
+			
+		var menu = document.getElementById("dropdown");
+		menu.addEventListener("change", generateData);
+
+		function generateData(event) {
+		  if (menu.value == '1') {
+			initiate();
+		  } else if (menu.value == '2') {
+			getBS();
+		  } else if (menu.value == '3') {
+			getBR();
+		  } else if (menu.value == '4') {
+			getTA();
+		  } else if (menu.value == '5') {
+			getCPA();
+		  }
+		}
+		
+		function initiate() {
+			//reset base map
+			map.remove();
+			center = L.bounds([1.56073, 104.11475], [1.16, 103.502]).getCenter();
+			
+			map = L.map('map').setView([center.x, center.y], 12);
+			
+			basemap = L.tileLayer('https://maps-{s}.onemap.sg/v3/Grey/{z}/{x}/{y}.png', {
+			  detectRetina: true,
+			  maxZoom: 18,
+			  minZoom: 11,
+			  //Do not remove this attribution
+			  attribution: '<img src="https://docs.onemap.sg/maps/images/oneMap64-01.png" style="height:20px;width:20px;"/> New OneMap | Map data © contributors, <a href="http://SLA.gov.sg">Singapore Land Authority</a>'
+			});
+			
+			map.setMaxBounds([[1.56073, 104.1147], [1.16, 103.502]]);
+			
+			basemap.addTo(map);	
+			
+			//reset global variables
+			<!-- 复制data数组 -->
+			datapoints = new Array();
+			<!-- 转换turf信息 -->
+			turfpoints = new Array();
+			
+			theMarker = new Array();
+			nearestMarker = new Array();
+			ptsWithinMarker  = new Array();
+			Markers= new Array();
+			circle = [];
+			
+		}	
+		
+		//initiate the base map
+		var center = L.bounds([1.56073, 104.11475], [1.16, 103.502]).getCenter();
+        
+		var map = L.map('map').setView([center.x, center.y], 12);
+        
+		var basemap = L.tileLayer('https://maps-{s}.onemap.sg/v3/Grey/{z}/{x}/{y}.png', {
+          detectRetina: true,
+          maxZoom: 18,
+          minZoom: 11,
+          //Do not remove this attribution
+          attribution: '<img src="https://docs.onemap.sg/maps/images/oneMap64-01.png" style="height:20px;width:20px;"/> New OneMap | Map data © contributors, <a href="http://SLA.gov.sg">Singapore Land Authority</a>'
+        });
+		
+		map.setMaxBounds([[1.56073, 104.1147], [1.16, 103.502]]);
+		
+        basemap.addTo(map);		
+		
+		//initiate global variables 
+		var cpaData = 'cpa';
+		var bsData = 'bs';
+		var brData = 'br';
+		var taData = 'ta';
+		var badata = 'ba';
+		var dataType = '';
+		
+		<!-- 复制data数组 -->
+		var datapoints = new Array();
+		<!-- 转换turf信息 -->
+		var turfpoints = new Array();
+				
+		
+		//main function: grab data from api
+		function grabData(dataType, startFrom=0) {
+			//var count = startFrom;
+			// Get External API		
+			var proxy = 'https://skytech-cors.herokuapp.com/';
+			var url = "http://datamall2.mytransport.sg/ltaodataservice";
+			
+			switch (dataType) {
+				case 'cpa':
+					var dataURL = proxy + url + "/CarParkAvailabilityv2?$skip=" + startFrom;
+					break;
+				case 'bs':
+					var dataURL = proxy + url + "/BusStops?$skip=" + startFrom;
+					break;
+				case 'br':
+					var dataURL = proxy + url + "/BusRoutes?$skip=" + startFrom;
+					break;
+				case 'ta':
+					var dataURL = proxy + url + "/Taxi-Availability?$skip=" + startFrom;
+					break;
+				case 'ba':
+					var dataURL = proxy + url + "/BusArrivalv2?$skip=" + startFrom;
+				default:
+					var dataURL = "No Data";
+			}
+					
+			$.ajax({
+			url: dataURL,
+			crossorigin: true,
+
+			headers: {
+				'AccountKey':'pCIBG2tZdDaAHAoXyUL6+Q==',
+				'Access-Control-Allow-Origin':'*',
+				'Accept':'application/json',
+				'Content-Type':'application/json'
+			},
+			method: 'GET',
+			dataType: 'json',
+			data: dataType,
+			
+			success: function(data){
+				
+				$.when(data).done(function(data) {
+				
+				var returns = JSON.stringify(data.value.length);
+				
+				console.log(data);
+				
+				if (dataType == 'cpa'){
+					for (i = 0; i < data.value.length; i++) {
+					
+					datapoints.push([data.value[i]]);
+										
+					//var marker = L.marker([data.value[i].Latitude, data.value[i].Longitude],).addTo(map).bindPopup("<b>BusStopCode: </b>" + data.value[i].BusStopCode + "<br>" + "<b>RoadName: </b>" + data.value[i].RoadName  + "<br>" + "<b>Description: </b>" + data.value[i].Description);
+					
+					data.value[i].Location = data.value[i].Location.split(" ");
+					data.value[i].Location = [Number(data.value[i].Location[0]),Number(data.value[i].Location[1])];
+					
+					if (data.value[i].Location[0] != 0){
+							turfpoints.push(turf.point([data.value[i].Location[0],data.value[i].Location[1]],{"AvailableLots": data.value[i].AvailableLots, "Development": data.value[i].Development}));
+						}
+					}
+					
+					console.log("turfpoints: " + turfpoints);
+
+				}
+				
+				else if (dataType == 'bs'){
+				for (i = 0; i < data.value.length; i++) {
+					
+					datapoints.push([data.value[i]]);
+					//console.log("Latitude: " + data.value[i].Latitude + ' , ' + "Longitude: " + data.value[i].Longitude);
+					
+					//var marker = L.marker([data.value[i].Latitude, data.value[i].Longitude],).addTo(map).bindPopup("<b>BusStopCode: </b>" + data.value[i].BusStopCode + "<br>" + "<b>RoadName: </b>" + data.value[i].RoadName  + "<br>" + "<b>Description: </b>" + data.value[i].Description);
+					
+					//turfpoint[i] = turf.point([data.value[i].Latitude,data.value[i].Longitude]);
+					//console.log(turfpoints[i]);
+					turfpoints.push(turf.point([data.value[i].Latitude,data.value[i].Longitude], {"BusStopCode": data.value[i].BusStopCode, "BusStopName": data.value[i].Description}));
+
+				}
+				}
+				
+				
+				else if (dataType == 'ta'){
+					
+					for (i = 0; i < data.value.length; i++) {
+					
+					datapoints.push([data.value[i]]);
+					//console.log("Latitude: " + data.value[i].Latitude + ' , ' + "Longitude: " + data.value[i].Longitude);
+					
+					//var marker = L.marker([data.value[i].Latitude, data.value[i].Longitude],).addTo(map).bindPopup("<b>BusStopCode: </b>" + data.value[i].BusStopCode + "<br>" + "<b>RoadName: </b>" + data.value[i].RoadName  + "<br>" + "<b>Description: </b>" + data.value[i].Description);
+					
+					//turfpoint[i] = turf.point([data.value[i].Latitude,data.value[i].Longitude]);
+					//console.log(turfpoints[i]);
+					turfpoints.push(turf.point([data.value[i].Latitude,data.value[i].Longitude]));
+
+					}
+					console.log(datapoints);
+					console.log(turfpoints);
+				}
+				
+				else if (dataType == 'ba'){
+					
+				}
+				
+				
+				
+				if (returns == 500){
+					startFrom += 500;
+					grabData(dataType, startFrom);
+				} else {
+					//TODO//return signal to indicate completion
+				}
+
+				})
+			},
+			
+			
+			error: function(err){
+				console.log(dataType + ' Error: '+ JSON.stringify(err));
+			}
+				})
+			};
+		
+        // Specify that this code should run once the cpaData request is complete
+		
+		
+		//call the individual functions from here
+		//define the datatype from html drop down options
+		//dataType = 'bs';
+		function getCPA() {
+			initiate();
+			grabData('cpa');
+			addCPAMarkers();
+			
+		}
+		
+		function getBS() {
+			initiate();
+			grabData('bs');
+			addBSMarkers();
+			
+		}
+		
+		function getTA() {
+			initiate();
+			grabData('ta');
+			addTAMarkers();
+			
+		}
+		
+		function getBR() {
+			initiate();
+			grabData('br');
+			addBRMarkers();
+			
+		}
+		
+		function getBA() {
+			initiate();
+			grabData('ba');
+			addBAMarkers();
+			
+		}
+		
+		
+
+		var theMarker = new Array();
+		var nearestMarker = new Array();
+		var ptsWithinMarker  = new Array();
+		var Markers= new Array();
+		var circle = [];
+		
+		function addCPAMarkers() {
+				<!-- 点击触发最近停车场 -->
+			map.on('click',function(e){
+
+			lat = e.latlng.lat;
+			lng = e.latlng.lng;
+						
+			if (theMarker != undefined) {
+				map.removeLayer(theMarker);
+			};
+			
+			if (nearestMarker != undefined) {
+				map.removeLayer(nearestMarker);
+			};
+			if (circle != undefined) {
+				map.removeLayer(circle);
+			};
+			
+			
+			for(n=0;n<ptsWithinMarker.length;n++){
+				
+				map.removeLayer(ptsWithinMarker[n]);
+	
+			};
+			
+			for(n=0;n<ptsWithinMarker.length;n++){
+				
+				//ptsWithinMarker.pop();
+				ptsWithinMarker.splice(n,1);
+			};
+			
+			
+			theMarker = L.marker([lat,lng],{icon:Icon2}).addTo(map);
+			
+			var targetPoint = turf.point([e.latlng.lat, e.latlng.lng], {"marker-color": "#0F0"});
+			
+			var points = turf.featureCollection(turfpoints);
+			
+			var nearest = turf.nearestPoint(targetPoint, points);
+			
+			console.log(nearest);
+			
+			console.log(nearest.geometry.coordinates);
+			
+
+			<!-- lat lng 转换 -->
+			
+			var newpoints = turf.flip(points);
+			var newtargetpoint =  turf.point([e.latlng.lng, e.latlng.lat]);
+			
+			
+			var buffered = turf.buffer(newtargetpoint, 2.0, {units: 'kilometers'});
+		
+			
+			var ptsWithin = turf.pointsWithinPolygon(newpoints, buffered);
+			console.log(ptsWithin);
+			
+			
+
+			circle = L.circle([lat,lng], {
+				color: 'black',
+				fillColor: 'gray',
+				fillOpacity: 0.3,
+				radius: 2000.0
+			}
+			).addTo(map);
+
+			for( n = 0 ; n < ptsWithin.features.length; n++ ){
+				
+				//console.log(ptsWithin.features[n].geometry.coordinates);
+				
+				ptsWithinMarker.push(L.marker([ptsWithin.features[n].geometry.coordinates[1],ptsWithin.features[n].geometry.coordinates[0]],{icon:Icon3}).addTo(map).bindPopup("<b>Availability: </b>" + ptsWithin.features[n].properties.AvailableLots + "<br>" + "Development: "+ptsWithin.features[n].properties.Development));
+				
+					
+				//ptsWithinMarker = L.marker([ptsWithin.features[n].geometry.coordinates[1],ptsWithin.features[n].geometry.coordinates[0]],{icon:Icon3}).addTo(map).bindPopup("<b>I am the busstop within 800m</b>");
+
+				//Markers.push(ptsWithinMarker);
+			}
+			console.log(ptsWithinMarker);
+			
+			
+			<!-- 显示最近的car park -->
+			//var i = nearest.properties.featureIndex;
+			//console.log(datapoints);
+			nearestMarker =  L.marker(nearest.geometry.coordinates,{icon:Icon5}).addTo(map).bindPopup("<b>Availability: </b>" + nearest.properties.AvailableLots + "<br>" + "Development: "+nearest.properties.Development);
+			
+			console.log(nearestMarker);
+			
+		});			
+		}
+		
+		function addBSMarkers() {
+				<!-- 点击触发最近公交车站 -->
+			map.on('click',function(e){
+
+			lat = e.latlng.lat;
+			lng = e.latlng.lng;
+						
+			if (theMarker != undefined) {
+				map.removeLayer(theMarker);
+			};
+			
+			if (nearestMarker != undefined) {
+				map.removeLayer(nearestMarker);
+			};
+			if (circle != undefined) {
+				map.removeLayer(circle);
+			};
+			
+			
+			for(n=0;n<ptsWithinMarker.length;n++){
+				
+				map.removeLayer(ptsWithinMarker[n]);
+	
+			};
+			
+			for(n=0;n<ptsWithinMarker.length;n++){
+				
+				//ptsWithinMarker.pop();
+				ptsWithinMarker.splice(n,1);
+			};
+			
+			
+			theMarker = L.marker([lat,lng],{icon:Icon2}).addTo(map);
+			
+			var targetPoint = turf.point([e.latlng.lat, e.latlng.lng], {"marker-color": "#0F0"});
+			
+			var points = turf.featureCollection(turfpoints);
+			
+			var nearest = turf.nearestPoint(targetPoint, points);
+			
+			console.log(nearest);
+			
+			console.log(nearest.geometry.coordinates);
+			
+
+			<!-- lat lng 转换 -->
+			
+			var newpoints = turf.flip(points);
+			var newtargetpoint =  turf.point([e.latlng.lng, e.latlng.lat]);
+			
+			
+			var buffered = turf.buffer(newtargetpoint, 0.8, {units: 'kilometers'});
+		
+			
+			var ptsWithin = turf.pointsWithinPolygon(newpoints, buffered);
+			console.log(ptsWithin);
+			
+			
+
+			circle = L.circle([lat,lng], {
+				color: 'black',
+				fillColor: 'gray',
+				fillOpacity: 0.3,
+				radius: 800.0
+			}
+			).addTo(map);
+
+			for( n = 0 ; n < ptsWithin.features.length; n++ ){
+				
+				//console.log(ptsWithin.features[n].geometry.coordinates);
+				
+				ptsWithinMarker.push(L.marker([ptsWithin.features[n].geometry.coordinates[1],ptsWithin.features[n].geometry.coordinates[0]],{icon:Icon3}).addTo(map).bindPopup("<b>BusStopCode: </b>" + ptsWithin.features[n].properties.BusStopCode + "<br>" + "<br>" + "<b>BusStopName: </b>" + ptsWithin.features[n].properties.BusStopName));
+				
+					
+				//ptsWithinMarker = L.marker([ptsWithin.features[n].geometry.coordinates[1],ptsWithin.features[n].geometry.coordinates[0]],{icon:Icon3}).addTo(map).bindPopup("<b>I am the busstop within 800m</b>");
+
+				//Markers.push(ptsWithinMarker);
+			}
+			console.log(ptsWithinMarker);
+			
+			
+			<!-- 显示最近的车站 -->
+			var i = nearest.properties.featureIndex;
+			//console.log(i);
+			nearestMarker =  L.marker(nearest.geometry.coordinates,{icon:Icon}).addTo(map).bindPopup("<b>I am the Nearest Point from your selected location:</b><p><b>BusStopCode: </b>" + datapoints[i][0].BusStopCode + "<br>" + "<b>RoadName: </b>" + datapoints[i][0].RoadName  + "<br>" + "<b>Description: </b>" + datapoints[i][0].Description);
+			
+			console.log(nearestMarker);
+			
+		});		
+		}
+		
+		function addBRMarkers() {
+				<!-- 点击触发最近路线 -->
+		map.on('click',function(e){
+
+			lat = e.latlng.lat;
+			lng = e.latlng.lng;
+						
+			if (theMarker != undefined) {
+				map.removeLayer(theMarker);
+			};
+			
+			if (nearestMarker != undefined) {
+				map.removeLayer(nearestMarker);
+			};
+			if (circle != undefined) {
+				map.removeLayer(circle);
+			};
+			
+			
+			for(n=0;n<ptsWithinMarker.length;n++){
+				
+				map.removeLayer(ptsWithinMarker[n]);
+	
+			};
+			
+			for(n=0;n<ptsWithinMarker.length;n++){
+				
+				//ptsWithinMarker.pop();
+				ptsWithinMarker.splice(n,1);
+			};
+			
+			
+			theMarker = L.marker([lat,lng],{icon:Icon2}).addTo(map);
+			
+			var targetPoint = turf.point([e.latlng.lat, e.latlng.lng], {"marker-color": "#0F0"});
+			
+			var points = turf.featureCollection(turfpoints);
+			
+			var nearest = turf.nearestPoint(targetPoint, points);
+			
+			console.log(nearest);
+			
+			console.log(nearest.geometry.coordinates);
+			
+
+			<!-- lat lng 转换 -->
+			
+			var newpoints = turf.flip(points);
+			var newtargetpoint =  turf.point([e.latlng.lng, e.latlng.lat]);
+			
+			
+			var buffered = turf.buffer(newtargetpoint, 0.8, {units: 'kilometers'});
+		
+			
+			var ptsWithin = turf.pointsWithinPolygon(newpoints, buffered);
+			console.log(ptsWithin);
+			
+			
+
+			circle = L.circle([lat,lng], {
+				color: 'black',
+				fillColor: 'gray',
+				fillOpacity: 0.3,
+				radius: 800.0
+			}
+			).addTo(map);
+
+			for( n = 0 ; n < ptsWithin.features.length; n++ ){
+				
+				//console.log(ptsWithin.features[n].geometry.coordinates);
+				
+				ptsWithinMarker.push(L.marker([ptsWithin.features[n].geometry.coordinates[1],ptsWithin.features[n].geometry.coordinates[0]],{icon:Icon3}).addTo(map).bindPopup("<b>I am the busstop within 800m</b>"));
+				
+					
+				//ptsWithinMarker = L.marker([ptsWithin.features[n].geometry.coordinates[1],ptsWithin.features[n].geometry.coordinates[0]],{icon:Icon3}).addTo(map).bindPopup("<b>I am the busstop within 800m</b>");
+
+				//Markers.push(ptsWithinMarker);
+			}
+			console.log(ptsWithinMarker);
+			
+			
+			<!-- 显示最近的车站 -->
+			var i = nearest.properties.featureIndex;
+			//console.log(i);
+			nearestMarker =  L.marker(nearest.geometry.coordinates,{icon:Icon}).addTo(map).bindPopup("<b>BusStopCode: </b>" + datapoints[i][0].BusStopCode + "<br>" + "<b>RoadName: </b>" + datapoints[i][0].RoadName  + "<br>" + "<b>Description: </b>" + datapoints[i][0].Description);
+			
+			console.log(nearestMarker);
+			
+		});		
+		}
+		
+		function addTAMarkers() {
+				<!-- 点击触发最近taxi -->
+			map.on('click',function(e){
+
+			lat = e.latlng.lat;
+			lng = e.latlng.lng;
+						
+			if (theMarker != undefined) {
+				map.removeLayer(theMarker);
+			};
+			
+			if (nearestMarker != undefined) {
+				map.removeLayer(nearestMarker);
+			};
+			if (circle != undefined) {
+				map.removeLayer(circle);
+			};
+			
+			
+			for(n=0;n<ptsWithinMarker.length;n++){
+				
+				map.removeLayer(ptsWithinMarker[n]);
+	
+			};
+			
+			for(n=0;n<ptsWithinMarker.length;n++){
+				
+				//ptsWithinMarker.pop();
+				ptsWithinMarker.splice(n,1);
+			};
+			
+			
+			theMarker = L.marker([lat,lng],{icon:Icon2}).addTo(map);
+			
+			var targetPoint = turf.point([e.latlng.lat, e.latlng.lng], {"marker-color": "#0F0"});
+			
+			var points = turf.featureCollection(turfpoints);
+			
+			var nearest = turf.nearestPoint(targetPoint, points);
+			
+			console.log(nearest);
+			
+			console.log(nearest.geometry.coordinates);
+			
+
+			<!-- lat lng 转换 -->
+			
+			var newpoints = turf.flip(points);
+			var newtargetpoint =  turf.point([e.latlng.lng, e.latlng.lat]);
+			
+			
+			var buffered = turf.buffer(newtargetpoint, 0.8, {units: 'kilometers'});
+		
+			
+			var ptsWithin = turf.pointsWithinPolygon(newpoints, buffered);
+			console.log(ptsWithin);
+			
+			
+
+			circle = L.circle([lat,lng], {
+				color: 'black',
+				fillColor: 'gray',
+				fillOpacity: 0.3,
+				radius: 800.0
+			}
+			).addTo(map);
+
+			for( n = 0 ; n < ptsWithin.features.length; n++ ){
+				
+				//console.log(ptsWithin.features[n].geometry.coordinates);
+				
+				ptsWithinMarker.push(L.marker([ptsWithin.features[n].geometry.coordinates[1],ptsWithin.features[n].geometry.coordinates[0]],{icon:Icon3}).addTo(map).bindPopup("<b>Taxi available.</b><br>To book a taxi, please call the <br>offical hotline: 63425222"));
+				
+					
+				//ptsWithinMarker = L.marker([ptsWithin.features[n].geometry.coordinates[1],ptsWithin.features[n].geometry.coordinates[0]],{icon:Icon3}).addTo(map).bindPopup("<b>I am the busstop within 800m</b>");
+
+				//Markers.push(ptsWithinMarker);
+			}
+			console.log(ptsWithinMarker);
+			
+			
+			<!-- 显示最近的车站 -->
+			var i = nearest.properties.featureIndex;
+			//console.log(i);
+			nearestMarker =  L.marker(nearest.geometry.coordinates,{icon:Icon4}).addTo(map).bindPopup("<b>Nearest taxi available.</b><br>To book a taxi, please call the <br>offical hotline: 63425222");
+			
+			console.log(nearestMarker);
+			
+		});		
+		}
+		
+		function addBAMarkers(){
+		
+		}
+			
+    </script>			
+
+	</body>
+</html>
